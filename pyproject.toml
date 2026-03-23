@@ -23,6 +23,17 @@ dependencies = [
     "langchain-daytona>=0.0.3",
     "langchain-modal>=0.0.2",
     "langchain-runloop>=0.0.3",
+    "kubernetes>=28.0.0",
+    "google-cloud-container>=2.0.0",
+    "google-cloud-run>=0.10.0",
+    "google-cloud-resource-manager>=1.0.0",
+    "google-cloud-secret-manager>=2.0.0",
+    "google-cloud-storage>=2.0.0",
+    "google-cloud-compute>=1.0.0",
+    "google-cloud-monitoring>=2.0.0",
+    "google-cloud-logging>=3.0.0",
+    "google-api-python-client>=2.0.0",
+    "datadog-api-client>=2.0.0",
 ]
 
 [project.optional-dependencies]

@@ -1,127 +1,102 @@
-"""Mapping of GitHub usernames to LangSmith email addresses.
+"""Mapping of GitHub usernames to email addresses.
 
-Add entries here as:
-    "github-username": "user@example.com",
+Falls back to checking GitHub org membership via the API when a user
+isn't in the static map. Allowed orgs are read from ALLOWED_GITHUB_ORGS.
 """
 
-GITHUB_USER_EMAIL_MAP: dict[str, str] = {
-    "aran-yogesh": "yogesh.mahendran@langchain.dev",
-    "AaryanPotdar": "aaryan.potdar@langchain.dev",
-    "agola11": "ankush@langchain.dev",
-    "akira": "alex@langchain.dev",
-    "amal-irgashev": "amal.irgashev@langchain.dev",
-    "andrew-langchain-gh": "andrew.selden@langchain.dev",
-    "andrewnguonly": "andrew@langchain.dev",
-    "andrewrreed": "andrew@langchain.dev",
-    "angus-langchain": "angus@langchain.dev",
-    "ArthurLangChain": "arthur@langchain.dev",
-    "asatish-langchain": "asatish@langchain.dev",
-    "ashwinamardeep-ashwin": "ashwin.amardeep@langchain.dev",
-    "asrira428": "siri.arun@langchain.dev",
-    "ayoung19": "andy@langchain.dev",
-    "baskaryan": "bagatur@langchain.dev",
-    "bastiangerstner": "bastian.gerstner@langchain.dev",
-    "bees": "arian@langchain.dev",
-    "bentanny": "ben.tannyhill@langchain.dev",
-    "bracesproul": "brace@langchain.dev",
-    "brianto-langchain": "brian.to@langchain.dev",
-    "bscott449": "brandon@langchain.dev",
-    "bvs-langchain": "brian@langchain.dev",
-    "bwhiting2356": "brendan.whiting@langchain.dev",
-    "carolinedivittorio": "caroline.divittorio@langchain.dev",
-    "casparb": "caspar@langchain.dev",
-    "catherine-langchain": "catherine@langchain.dev",
-    "ccurme": "chester@langchain.dev",
-    "christian-bromann": "christian@langchain.dev",
-    "christineastoria": "christine@langchain.dev",
-    "colifran": "colin.francis@langchain.dev",
-    "conradcorbett-crypto": "conrad.corbett@langchain.dev",
-    "cstanlee": "carlos.stanley@langchain.dev",
-    "cwaddingham": "chris.waddingham@langchain.dev",
-    "cwlbraa": "cwlbraa@langchain.dev",
-    "dahlke": "neil@langchain.dev",
-    "DanielKneipp": "daniel@langchain.dev",
-    "danielrlambert3": "daniel@langchain.dev",
-    "DavoCoder": "davidc@langchain.dev",
-    "ddzmitry": "dzmitry.dubarau@langchain.dev",
-    "denis-at-langchain": "denis@langchain.dev",
-    "dqbd": "david@langchain.dev",
-    "elibrosen": "eli@langchain.dev",
-    "emil-lc": "emil@langchain.dev",
-    "emily-langchain": "emily@langchain.dev",
-    "ericdong-langchain": "ericdong@langchain.dev",
-    "ericjohanson-langchain": "eric.johanson@langchain.dev",
-    "eyurtsev": "eugene@langchain.dev",
-    "gethin-langchain": "gethin.dibben@langchain.dev",
-    "gladwig2": "geoff@langchain.dev",
-    "GowriH-1": "gowri@langchain.dev",
-    "hanalodi": "hana@langchain.dev",
-    "hari-dhanushkodi": "hari@langchain.dev",
-    "hinthornw": "will@langchain.dev",
-    "hntrl": "hunter@langchain.dev",
-    "hwchase17": "harrison@langchain.dev",
-    "iakshay": "akshay@langchain.dev",
-    "sydney-runkle": "sydney@langchain.dev",
-    "tanushree-sharma": "tanushree@langchain.dev",
-    "victorm-lc": "victor@langchain.dev",
-    "vishnu-ssuresh": "vishnu.suresh@langchain.dev",
-    "vtrivedy": "vivek.trivedy@langchain.dev",
-    "will-langchain": "will.anderson@langchain.dev",
-    "xuro-langchain": "xuro@langchain.dev",
-    "yumuzi234": "zhen@langchain.dev",
-    "j-broekhuizen": "jb@langchain.dev",
-    "jacobalbert3": "jacob.albert@langchain.dev",
-    "jacoblee93": "jacob@langchain.dev",
-    "jdrogers940 ": "josh@langchain.dev",
-    "jeeyoonhyun": "jeeyoon@langchain.dev",
-    "jessieibarra": "jessie.ibarra@langchain.dev",
-    "jfglanc": "jan.glanc@langchain.dev",
-    "jkennedyvz": "john@langchain.dev",
-    "joaquin-borggio-lc": "joaquin@langchain.dev",
-    "joel-at-langchain": "joel.johnson@langchain.dev",
-    "johannes117": "johannes@langchain.dev",
-    "joshuatagoe": "joshua.tagoe@langchain.dev",
-    "katmayb": "kathryn@langchain.dev",
-    "kenvora": "kvora@langchain.dev",
-    "kevinbfrank": "kevin.frank@langchain.dev",
-    "KiewanVillatel": "kiewan@langchain.dev",
-    "l2and": "randall@langchain.dev",
-    "langchain-infra": "mukil@langchain.dev",
-    "langchain-karan": "karan@langchain.dev",
-    "lc-arjun": "arjun@langchain.dev",
-    "lc-chad": "chad@langchain.dev",
-    "lcochran400": "logan.cochran@langchain.dev",
-    "lnhsingh": "lauren@langchain.dev",
-    "longquanzheng": "long@langchain.dev",
-    "loralee90": "lora.lee@langchain.dev",
-    "lunevalex": "alunev@langchain.dev",
-    "maahir30": "maahir.sachdev@langchain.dev",
-    "madams0013": "maddy@langchain.dev",
-    "mdrxy": "mason@langchain.dev",
-    "mhk197": "katz@langchain.dev",
-    "mwalker5000": "mike.walker@langchain.dev",
-    "natasha-langchain": "nwhitney@langchain.dev",
-    "nhuang-lc": "nick@langchain.dev",
-    "niilooy": "niloy@langchain.dev",
-    "nitboss": "nithin@langchain.dev",
-    "npentrel": "naomi@langchain.dev",
-    "nrc": "nick.cameron@langchain.dev",
-    "Palashio": "palash@langchain.dev",
-    "PeriniM": "marco@langchain.dev",
-    "pjrule": "parker@langchain.dev",
-    "QuentinBrosse": "quentin@langchain.dev",
-    "rahul-langchain": "rahul@langchain.dev",
-    "ramonpetgrave64": "ramon@langchain.dev",
-    "rx5ad": "rafid.saad@langchain.dev",
-    "saad-supports-langchain": "saad@langchain.dev",
-    "samecrowder": "scrowder@langchain.dev",
-    "samnoyes": "sam@langchain.dev",
-    "seanderoiste": "sean@langchain.dev",
-    "simon-langchain": "simon@langchain.dev",
-    "sriputhucode-ops": "sri.puthucode@langchain.dev",
-    "stephen-chu": "stephen.chu@langchain.dev",
-    "sthm": "steffen@langchain.dev",
-    "steve-langchain": "steve@langchain.dev",
-    "SumedhArani": "sumedh@langchain.dev",
-    "suraj-langchain": "suraj@langchain.dev",
-}
+import logging
+import os
+
+import httpx
+
+logger = logging.getLogger(__name__)
+
+# Static map for any users that need explicit overrides
+GITHUB_USER_EMAIL_MAP: dict[str, str] = {}
+
+# Cache org membership checks to avoid repeated API calls
+_org_member_cache: dict[str, str] = {}
+
+_ALLOWED_ORGS: list[str] = [
+    org.strip().lower()
+    for org in os.environ.get("ALLOWED_GITHUB_ORGS", "").split(",")
+    if org.strip()
+]
+
+
+async def _check_org_membership(github_login: str) -> str | None:
+    """Check if a GitHub user is a member of any allowed org.
+
+    Uses the GitHub App installation token to query the API.
+    Returns a synthetic email if the user is a member, None otherwise.
+    """
+    # Avoid circular import
+    from agent.utils.auth import get_github_app_installation_token
+
+    if not _ALLOWED_ORGS:
+        return None
+
+    token = await get_github_app_installation_token()
+    if not token:
+        logger.warning("No GitHub App token available for org membership check")
+        return None
+
+    headers = {
+        "Authorization": f"token {token}",
+        "Accept": "application/vnd.github+json",
+    }
+
+    async with httpx.AsyncClient() as client:
+        for org in _ALLOWED_ORGS:
+            try:
+                resp = await client.get(
+                    f"https://api.github.com/orgs/{org}/members/{github_login}",
+                    headers=headers,
+                    timeout=10,
+                )
+                if resp.status_code == 204:
+                    # 204 = user is a member
+                    email = f"{github_login}@{org}.github"
+                    logger.info(
+                        "GitHub user '%s' confirmed as member of org '%s'",
+                        github_login,
+                        org,
+                    )
+                    return email
+            except Exception:
+                logger.warning(
+                    "Failed to check org membership for '%s' in '%s'",
+                    github_login,
+                    org,
+                    exc_info=True,
+                )
+
+    return None
+
+
+async def resolve_github_user_email(github_login: str) -> str:
+    """Resolve a GitHub username to an email.
+
+    Checks the static map first, then falls back to org membership check.
+    Returns empty string if the user is not authorized.
+    """
+    # 1. Check static map
+    email = GITHUB_USER_EMAIL_MAP.get(github_login, "")
+    if email:
+        return email
+
+    # 2. Check cache
+    if github_login in _org_member_cache:
+        return _org_member_cache[github_login]
+
+    # 3. Check org membership via API
+    email = await _check_org_membership(github_login) or ""
+    _org_member_cache[github_login] = email
+
+    if not email:
+        logger.warning(
+            "GitHub user '%s' not in static map and not a member of allowed orgs",
+            github_login,
+        )
+
+    return email
