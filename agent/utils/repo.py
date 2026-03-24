@@ -22,15 +22,18 @@ def extract_repo_from_text(text: str, default_owner: str | None = None) -> dict[
     owner: str | None = None
     name: str | None = None
 
-    if "repo:" in text or "repo " in text:
-        match = re.search(r"repo[: ]([a-zA-Z0-9_.\-/]+)", text)
+    # Require "repo:" with colon (not "repo " with space) to avoid matching
+    # natural language like "check the repo and see..."
+    repo_match = re.search(r"repo:\s*([a-zA-Z0-9_.\-]+/[a-zA-Z0-9_.\-]+)", text)
+    if repo_match:
+        value = repo_match.group(1).rstrip("/")
+        owner, name = value.split("/", 1)
+    elif "repo:" in text:
+        # repo:name (without owner)
+        match = re.search(r"repo:\s*([a-zA-Z0-9_.\-]+)", text)
         if match:
-            value = match.group(1).rstrip("/")
-            if "/" in value:
-                owner, name = value.split("/", 1)
-            else:
-                owner = default_owner
-                name = value
+            owner = default_owner
+            name = match.group(1)
 
     if not owner or not name:
         github_match = re.search(r"github\.com/([a-zA-Z0-9_.-]+/[a-zA-Z0-9_.-]+)", text)
