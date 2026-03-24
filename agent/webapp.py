@@ -697,33 +697,11 @@ async def clickup_webhook(
     task_id = payload.get("task_id", "")
     logger.info("ClickUp webhook event=%s task_id=%s payload_keys=%s", event, task_id, list(payload.keys()))
 
-    # Handle taskCommentPosted events — trigger on @openswe mention
+    # ClickUp comments are ignored — use the 'openswe' tag to trigger.
+    # This prevents duplicate runs when ClearFeed syncs Slack comments to ClickUp.
     if event == "taskCommentPosted":
-        history_items = payload.get("history_items", [])
-        comment_text = ""
-        for item in history_items:
-            comment_data = item.get("comment", {})
-            comment_text = (
-                comment_data.get("text_content", "")
-                or comment_data.get("comment_text", "")
-                or item.get("text_content", "")
-                or item.get("comment_text", "")
-            )
-            if comment_text:
-                break
-
-        if not comment_text:
-            logger.info("ClickUp webhook: no comment_text found. history_items=%s", history_items[:2])
-            return {"status": "ignored", "reason": "No comment text found"}
-
-        logger.info("ClickUp webhook comment_text: %s", comment_text[:200])
-        if "@openswe" not in comment_text.lower():
-            return {"status": "ignored", "reason": "Comment doesn't mention @openswe"}
-
-        # Ignore our own bot messages
-        bot_prefixes = ("👀 Working on it", "✅ **Pull Request", "❌ **Agent Error")
-        if any(comment_text.startswith(p) for p in bot_prefixes):
-            return {"status": "ignored", "reason": "Comment is our own bot message"}
+        logger.info("ClickUp webhook: ignoring comment event (use tag trigger instead)")
+        return {"status": "ignored", "reason": "Comment triggers disabled; use openswe tag"}
 
     # Handle taskTagUpdated — trigger when 'openswe' tag is added
     elif event == "taskTagUpdated":
