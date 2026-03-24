@@ -1,0 +1,45 @@
+FROM python:3.12.12-slim-trixie
+
+ENV DEBIAN_FRONTEND=noninteractive
+
+RUN apt-get update && apt-get install -y \
+    git \
+    curl \
+    ca-certificates \
+    build-essential \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install uv
+ARG UV_VERSION=0.9.26
+RUN set -eux; \
+    arch="$(dpkg --print-architecture)"; \
+    case "${arch}" in \
+      amd64) uv_arch="x86_64-unknown-linux-gnu" ;; \
+      arm64) uv_arch="aarch64-unknown-linux-gnu" ;; \
+      *) echo "unsupported: ${arch}" >&2; exit 1 ;; \
+    esac; \
+    curl -fsSL "https://github.com/astral-sh/uv/releases/download/${UV_VERSION}/uv-${uv_arch}.tar.gz" -o /tmp/uv.tar.gz; \
+    tar -xzf /tmp/uv.tar.gz -C /tmp; \
+    install -m 0755 "/tmp/uv-${uv_arch}/uv" /usr/local/bin/uv; \
+    rm -rf /tmp/uv.tar.gz "/tmp/uv-${uv_arch}"
+
+WORKDIR /app
+
+# Copy dependency files first for layer caching
+COPY pyproject.toml uv.lock ./
+
+# Install dependencies
+RUN uv pip install --system --no-cache -r pyproject.toml
+
+# Copy application code
+COPY README.md ./
+COPY agent ./agent
+COPY langgraph.json ./
+
+# Install the project
+RUN uv pip install --system --no-cache -e .
+
+EXPOSE 8000
+
+# Run LangGraph dev server (open source, in-memory mode, no license needed)
+CMD ["langgraph", "dev", "--host", "0.0.0.0", "--port", "8000", "--no-browser", "--no-reload", "--allow-blocking", "--config", "langgraph.json"]

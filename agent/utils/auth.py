@@ -16,7 +16,7 @@ from langgraph_sdk import get_client
 from ..encryption import encrypt_token
 from .github_app import get_github_app_installation_token
 from .github_token import get_github_token_from_thread
-from .github_user_email_map import GITHUB_USER_EMAIL_MAP
+from .github_user_email_map import resolve_github_user_email
 from .linear import comment_on_linear_issue
 from .slack import post_slack_ephemeral_message, post_slack_thread_reply
 
@@ -44,12 +44,17 @@ logger.debug(
 def is_bot_token_only_mode() -> bool:
     """Check if we're in bot-token-only mode.
 
-    This is the case when LANGSMITH_API_KEY_PROD is set (deployed) but neither
-    X_SERVICE_AUTH_JWT_SECRET nor USER_ID_API_KEY_MAP is configured, meaning we
-    can't resolve per-user GitHub OAuth tokens. In this mode the GitHub App
-    installation token is used for all git operations instead.
+    This is the case when either:
+    1. LANGSMITH_API_KEY_PROD is set but neither X_SERVICE_AUTH_JWT_SECRET nor
+       USER_ID_API_KEY_MAP is configured (can't resolve per-user OAuth tokens).
+    2. No LANGSMITH_API_KEY_PROD is set at all (no LangSmith — open source mode).
+
+    In this mode the GitHub App installation token is used for all git
+    operations instead of per-user OAuth tokens.
     """
-    return bool(LANGSMITH_API_KEY and not X_SERVICE_AUTH_JWT_SECRET and not USER_ID_API_KEY_MAP)
+    if not LANGSMITH_API_KEY:
+        return True
+    return bool(not X_SERVICE_AUTH_JWT_SECRET and not USER_ID_API_KEY_MAP)
 
 
 def _retry_instruction(source: str) -> str:
@@ -388,7 +393,7 @@ async def resolve_github_token(config: RunnableConfig, thread_id: str) -> tuple[
             if cached_token and cached_encrypted:
                 return cached_token, cached_encrypted
             github_login = configurable.get("github_login")
-            email = GITHUB_USER_EMAIL_MAP.get(github_login or "")
+            email = await resolve_github_user_email(github_login or "")
             if not email:
                 raise ValueError(f"No email mapping found for GitHub user '{github_login}'")
             return await save_encrypted_token_from_email(email, source)

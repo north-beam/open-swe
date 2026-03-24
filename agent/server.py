@@ -34,11 +34,13 @@ from .middleware import (
 )
 from .prompt import construct_system_prompt
 from .tools import (
+    clickup_comment,
     commit_and_open_pr,
+    datadog_lookup,
     fetch_url,
+    gcp_lookup,
     github_comment,
     http_request,
-    linear_comment,
     slack_thread_reply,
 )
 from .utils.auth import resolve_github_token
@@ -61,7 +63,7 @@ from .utils.github import (
     setup_git_credentials,
 )
 from .utils.sandbox_paths import aresolve_repo_dir, aresolve_sandbox_work_dir
-from .utils.sandbox_state import SANDBOX_BACKENDS, get_sandbox_id_from_metadata
+from .utils.sandbox_state import SANDBOX_BACKENDS, get_sandbox_id_from_metadata, touch_sandbox
 
 
 async def _clone_or_pull_repo_in_sandbox(  # noqa: PLR0915
@@ -357,6 +359,7 @@ async def get_agent(config: RunnableConfig) -> Pregel:  # noqa: PLR0915
                 raise
 
     SANDBOX_BACKENDS[thread_id] = sandbox_backend
+    touch_sandbox(thread_id)
 
     if not repo_dir:
         msg = "Cannot proceed: no repo was cloned. Set 'repo.owner' and 'repo.name' in the configurable config"
@@ -380,27 +383,24 @@ async def get_agent(config: RunnableConfig) -> Pregel:  # noqa: PLR0915
                 checkout_result.output[:200] if checkout_result.output else "",
             )
 
-    linear_issue = config["configurable"].get("linear_issue", {})
-    linear_project_id = linear_issue.get("linear_project_id", "")
-    linear_issue_number = linear_issue.get("linear_issue_number", "")
     agents_md = await read_agents_md_in_sandbox(sandbox_backend, repo_dir)
 
     logger.info("Returning agent with sandbox for thread %s", thread_id)
     return create_deep_agent(
-        model=make_model("anthropic:claude-opus-4-6", temperature=0, max_tokens=20_000),
+        model=make_model("anthropic:claude-opus-4-6-vertex", temperature=0, max_tokens=20_000),
         system_prompt=construct_system_prompt(
             repo_dir,
-            linear_project_id=linear_project_id,
-            linear_issue_number=linear_issue_number,
             agents_md=agents_md,
         ),
         tools=[
             http_request,
             fetch_url,
             commit_and_open_pr,
-            linear_comment,
+            clickup_comment,
             slack_thread_reply,
             github_comment,
+            gcp_lookup,
+            datadog_lookup,
         ],
         backend=sandbox_backend,
         middleware=[

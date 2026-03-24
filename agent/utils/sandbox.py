@@ -1,6 +1,7 @@
 import os
 
 from agent.integrations.daytona import create_daytona_sandbox
+from agent.integrations.gke import create_gke_sandbox
 from agent.integrations.langsmith import create_langsmith_sandbox
 from agent.integrations.local import create_local_sandbox
 from agent.integrations.modal import create_modal_sandbox
@@ -12,6 +13,7 @@ SANDBOX_FACTORIES = {
     "modal": create_modal_sandbox,
     "runloop": create_runloop_sandbox,
     "local": create_local_sandbox,
+    "gke": create_gke_sandbox,
 }
 
 
